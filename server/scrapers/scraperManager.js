@@ -1,25 +1,78 @@
 import { scrapeSPSE, scrapeGenericHTML } from './spseScraper.js';
 import { updateSource, upsertProject, addCrawlLog, getSources } from '../db.js';
 
-// Portals known to require login/AVL or JS-rendered pages - mark immediately uncrawlable
-const UNCRAWLABLE_PATTERNS = [
-  'jakartamrt.co.id',      // MRT - AVL required
-  'transjakarta.co.id',    // Transjakarta - Microsoft Dynamics ERP (JS-heavy)
-  'jiep.co.id',            // JIEP - SSO Nexus login
-];
+// ─── Portals classified by crawl strategy ────────────────────────────────────
 
-// Portals that use SPSE v4.5 DataTables AJAX
-const SPSE_PATTERNS = [
-  'spse.inaproc.id',
-];
+// RC-3 Fix: Portals that are JS-rendered or have auth walls — mark immediately
+// with accurate, portal-specific error messages instead of generic "no table found"
+const UNCRAWLABLE_PORTALS = {
+  'jakartamrt.co.id': {
+    reason:
+      'Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). ' +
+      'Detail tender tidak dapat diakses secara publik tanpa autentikasi AVL.',
+  },
+  'transjakarta.co.id': {
+    reason:
+      'Portal Transjakarta menggunakan Microsoft Dynamics ERP dengan rendering ' +
+      'JavaScript sisi klien penuh. Memerlukan headless browser (Playwright/Puppeteer) ' +
+      'untuk mengeksekusi JavaScript sebelum data dapat diekstrak.',
+  },
+  'jiep.co.id': {
+    reason:
+      'Portal JIEP dilindungi oleh SSO Nexus. ' +
+      'Autentikasi login diperlukan untuk mengakses daftar tender.',
+  },
+  // RC-3: JS-rendered BUMD portals — confirmed via live test
+  'pamjaya.co.id': {
+    reason:
+      'Portal PAM JAYA menggunakan rendering JavaScript sisi klien (Single Page App). ' +
+      'Cheerio tidak dapat mengekstrak data dari halaman dinamis ini. ' +
+      'Memerlukan headless browser untuk crawling.',
+  },
+  'paljaya.com': {
+    reason:
+      'Portal PAL Jaya menggunakan rendering JavaScript sisi klien. ' +
+      'Memerlukan headless browser untuk mengambil data tender.',
+  },
+  'kbn.co.id': {
+    reason:
+      'Portal KBN menggunakan rendering JavaScript sisi klien. ' +
+      'Memerlukan headless browser untuk mengambil data tender.',
+  },
+  'pulomasjaya.co.id': {
+    reason:
+      'Portal Pulo Mas Jaya menggunakan rendering JavaScript sisi klien. ' +
+      'Memerlukan headless browser untuk mengambil data tender.',
+  },
+  'pasarjaya.co.id': {
+    reason:
+      'Portal Pasar Jaya telah migrasi ke platform iProc ADW (pengadaan.com) ' +
+      'yang menggunakan Single Page App dengan sesi terenkripsi. ' +
+      'Memerlukan headless browser dengan session management.',
+  },
+  'dharmajaya.co.id': {
+    reason:
+      'Halaman pengadaan Dharma Jaya menggunakan WordPress blog post dengan barcode eksternal, ' +
+      'bukan tabel HTML standar. ' +
+      'Data tender dipublikasikan sebagai PDF atau post blog, bukan tabel terstruktur.',
+  },
+};
 
-function isUncrawlable(url) {
-  return UNCRAWLABLE_PATTERNS.some((pat) => url.includes(pat));
+// Portals that use SPSE v4.5 DataTables AJAX (inaproc)
+const SPSE_PATTERNS = ['spse.inaproc.id'];
+
+function getUncrawlableInfo(url) {
+  const match = Object.entries(UNCRAWLABLE_PORTALS).find(([pattern]) =>
+    url.includes(pattern)
+  );
+  return match ? match[1] : null;
 }
 
 function isSPSE(url) {
   return SPSE_PATTERNS.some((pat) => url.includes(pat));
 }
+
+// ─── Main crawl function ──────────────────────────────────────────────────────
 
 export async function crawlSource(source) {
   const { id, url, name } = source;
@@ -27,30 +80,32 @@ export async function crawlSource(source) {
   // Mark as crawling
   updateSource(id, { status: 'crawling', lastError: null });
 
-  // Known un-crawlable portals
-  if (isUncrawlable(url)) {
-    const reason = getUncrawlableReason(url);
+  // RC-3 Fix: Check known uncrawlable portals first with accurate messages
+  const uncrawlableInfo = getUncrawlableInfo(url);
+  if (uncrawlableInfo) {
     updateSource(id, {
       status: 'uncrawlable',
       lastCrawled: new Date().toISOString(),
-      lastError: reason,
+      lastError: uncrawlableInfo.reason,
     });
     addCrawlLog({
       sourceId: id,
       sourceName: name,
       type: 'uncrawlable',
-      message: reason,
+      message: uncrawlableInfo.reason,
       projectsAdded: 0,
     });
-    return { success: false, reason, projectsAdded: 0 };
+    return { success: false, reason: uncrawlableInfo.reason, projectsAdded: 0 };
   }
 
   try {
     let projects = [];
 
     if (isSPSE(url)) {
+      // RC-1 Fix: SPSE scraper now does proper 2-step session init
       projects = await scrapeSPSE(url, id, name);
     } else {
+      // RC-2+4 Fix: generic scraper now uses TLS bypass + login detection
       projects = await scrapeGenericHTML(url, id, name);
     }
 
@@ -107,44 +162,78 @@ export async function crawlAll() {
   const results = [];
   for (const source of sources) {
     // Add delay between requests to avoid WAF triggers
-    await sleep(800 + Math.random() * 1200);
+    await sleep(600 + Math.random() * 800);
     const result = await crawlSource(source);
     results.push({ sourceId: source.id, sourceName: source.name, ...result });
   }
   return results;
 }
 
-function getUncrawlableReason(url) {
-  if (url.includes('jakartamrt.co.id'))
-    return 'Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). Tidak dapat diakses secara publik.';
-  if (url.includes('transjakarta.co.id'))
-    return 'Portal Transjakarta menggunakan Microsoft Dynamics ERP dengan rendering JavaScript sisi klien penuh. Memerlukan headless browser.';
-  if (url.includes('jiep.co.id'))
-    return 'Portal JIEP menggunakan proteksi login SSO Nexus. Tidak dapat diakses tanpa autentikasi.';
-  return 'Portal tidak dapat diakses secara publik.';
-}
+// ─── Error classification ─────────────────────────────────────────────────────
 
 function classifyError(err) {
-  if (!err.response && err.code === 'ECONNREFUSED')
-    return 'Koneksi ditolak (ECONNREFUSED). Server mungkin sedang offline.';
-  if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED')
-    return 'Request timeout. Server terlalu lambat merespons atau memblokir crawler.';
+  // RC-4: Login redirect detected by scraper
+  if (err.message?.includes('LOGIN_REQUIRED')) {
+    return (
+      'Portal mengarahkan ke halaman login. ' +
+      'Akses data tender memerlukan autentikasi. Tidak dapat diakses secara publik.'
+    );
+  }
+
+  if (!err.response && err.code === 'ECONNREFUSED') {
+    return 'Koneksi ditolak (ECONNREFUSED). Server portal mungkin sedang offline atau tidak dapat dijangkau.';
+  }
+
+  if (err.code === 'ETIMEDOUT' || err.code === 'ECONNABORTED') {
+    return 'Request timeout. Server terlalu lambat merespons atau secara aktif memblokir crawler.';
+  }
+
+  // RC-2: TLS errors
+  if (
+    err.message?.includes('unable to verify') ||
+    err.message?.includes('certificate') ||
+    err.message?.includes('TLS') ||
+    err.message?.includes('SSL') ||
+    err.message?.includes('socket disconnected')
+  ) {
+    return (
+      'Gagal terkoneksi karena masalah sertifikat SSL/TLS. ' +
+      'Portal menggunakan sertifikat self-signed atau chain tidak lengkap.'
+    );
+  }
+
   if (err.response) {
     const status = err.response.status;
-    if (status === 403)
-      return `HTTP 403 Forbidden — Portal memblokir akses crawler (WAF atau proteksi anti-bot).`;
-    if (status === 401)
-      return `HTTP 401 Unauthorized — Diperlukan autentikasi untuk mengakses portal ini.`;
-    if (status === 404)
-      return `HTTP 404 Not Found — URL target tidak ditemukan.`;
-    if (status >= 500)
-      return `HTTP ${status} — Server portal sedang mengalami gangguan.`;
+    if (status === 403) {
+      return 'HTTP 403 Forbidden — Portal memblokir akses crawler (WAF atau proteksi anti-bot aktif).';
+    }
+    if (status === 401) {
+      return 'HTTP 401 Unauthorized — Diperlukan autentikasi untuk mengakses portal ini.';
+    }
+    if (status === 404) {
+      return 'HTTP 404 Not Found — URL target tidak ditemukan. Periksa apakah URL portal masih aktif.';
+    }
+    if (status >= 500) {
+      return `HTTP ${status} — Server portal sedang mengalami gangguan internal.`;
+    }
     return `HTTP ${status} — ${err.response.statusText || 'Unknown error'}`;
   }
-  if (err.message?.includes('No usable data table'))
-    return 'Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.';
-  if (err.message?.includes('no extractable rows'))
-    return 'Tabel ditemukan namun tidak ada baris data yang dapat diekstrak.';
+
+  if (err.message?.includes('No usable data table')) {
+    return (
+      'Tidak ada tabel data yang dapat diekstrak dari halaman ini. ' +
+      'Kemungkinan halaman memerlukan JavaScript atau autentikasi untuk menampilkan data.'
+    );
+  }
+
+  if (err.message?.includes('no extractable rows') || err.message?.includes('0 rows')) {
+    return 'Tabel ditemukan namun tidak ada baris data yang dapat diekstrak. Portal mungkin kosong atau memerlukan login.';
+  }
+
+  if (err.message?.includes('SPSE returned 0 records')) {
+    return 'SPSE portal tidak mengembalikan data. Mungkin tidak ada tender aktif atau session tidak valid.';
+  }
+
   return `Error: ${err.message || 'Unknown error'}`;
 }
 

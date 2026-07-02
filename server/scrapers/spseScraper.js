@@ -22,7 +22,6 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
 
   const baseUrl = `${SPSE_BASE}/${slug}`;
   const lelangUrl = `${baseUrl}/lelang`;
-  const dtUrl = `${baseUrl}/dt/tender`;
 
   const baseHeaders = {
     'User-Agent':
@@ -31,7 +30,7 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
     Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
   };
 
-  // ── Step 1: Get session cookie + auth token ──────────────────────────────
+  // ── Step 1: Get session cookie + auth token + ajax url path ────────────────
   const pageResp = await axios.get(lelangUrl, {
     headers: baseHeaders,
     httpsAgent,
@@ -39,22 +38,22 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
     withCredentials: true,
   });
 
+  const html = pageResp.data || '';
+
+  // Extract authenticityToken
+  const tokenMatch = html.match(/authenticityToken\s*[=:]\s*['"]([a-f0-9]+)['"]/i);
+  const token = tokenMatch ? tokenMatch[1] : null;
+
+  // Extract dynamic dt/lelang url path
+  const urlMatch = html.match(/url\s*:\s*['"]([^'"]+dt\/lelang[^'"]*)['"]/i);
+  const dtUrlPath = urlMatch ? urlMatch[1] : `/${slug}/dt/lelang?tahun=${new Date().getFullYear()}`;
+  const dtUrl = `${SPSE_BASE}${dtUrlPath}`;
+
   // Extract Set-Cookie header
   const rawCookies = pageResp.headers['set-cookie'] || [];
   const cookieStr = rawCookies
     .map((c) => c.split(';')[0])
     .join('; ');
-
-  // Extract ___AT auth token from cookie or page body
-  let authToken = '';
-  const cookieMatch = cookieStr.match(/___AT=([A-Za-z0-9]+)/);
-  if (cookieMatch) {
-    authToken = cookieMatch[1];
-  } else {
-    // Try to find it in the page HTML
-    const htmlMatch = pageResp.data?.match(/___AT=([A-Za-z0-9]+)/);
-    if (htmlMatch) authToken = htmlMatch[1];
-  }
 
   // ── Step 2: POST to DataTables endpoint ──────────────────────────────────
   const params = new URLSearchParams({
@@ -62,10 +61,12 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
     start: '0',
     length: '100',
     'search[value]': '',
-    'order[0][column]': '1',
+    'order[0][column]': '0',
     'order[0][dir]': 'desc',
   });
-  if (authToken) params.set('token', authToken);
+  if (token) {
+    params.set('authenticityToken', token);
+  }
 
   const dtResp = await axios.post(dtUrl, params.toString(), {
     headers: {
@@ -100,18 +101,16 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
       return $('body').text().trim();
     };
 
-    const name = parseText(cols[1] || cols[0]);
-    const hpsRaw = parseText(cols[2] || '');
-    const agency = parseText(cols[3] || '');
-    const tenderStatus = parseText(cols[6] || '');
-    const dateRaw = parseText(cols[7] || '');
+    const tenderId = cols[0] ? String(cols[0]) : `${sourceId}-${i}`;
+    const name = parseText(cols[1] || '');
+    const agency = parseText(cols[2] || '');
+    const tenderStatus = parseText(cols[3] || '');
+    let hpsRaw = parseText(cols[10] || cols[4] || '');
+    const dateRaw = '-'; // not returned in list data
 
-    let tenderId = `${sourceId}-${i}`;
-    if (typeof cols[1] === 'string') {
-      const match = cols[1].match(/\/lelang\/(\d+)/);
-      if (match) tenderId = match[1];
+    if (hpsRaw.includes(',')) {
+      hpsRaw = hpsRaw.split(',')[0];
     }
-
     const hpsNum = parseInt(hpsRaw.replace(/[^\d]/g, ''), 10) || 0;
 
     return {

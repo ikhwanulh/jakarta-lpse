@@ -1,0 +1,368 @@
+{
+  "sources": [
+    {
+      "id": "src-001",
+      "name": "Pemprov DKI Jakarta (SPSE)",
+      "url": "https://spse.inaproc.id/jakarta/lelang",
+      "platform": "SPSE v4.5 (LKPP)",
+      "crawlability": "Tinggi",
+      "notes": "WAF LKPP. Gunakan rotasi header dan jeda acak.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:21.431Z",
+      "lastError": "HTTP 404 Not Found — URL target tidak ditemukan.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-002",
+      "name": "PT Bank DKI",
+      "url": "https://eproc.bankdki.co.id/pm/",
+      "platform": "Custom e-Procurement",
+      "crawlability": "Sedang",
+      "notes": "Struktur kalender dan penataan elemen tabel dinamis.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:23.686Z",
+      "lastError": "HTTP 403 Forbidden — Portal memblokir akses crawler (WAF atau proteksi anti-bot).",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-003",
+      "name": "PT Jakarta Propertindo (JAKPRO)",
+      "url": "https://eproc.jakarta-propertindo.com/main",
+      "platform": "Custom e-Proc (Jakpro Group)",
+      "crawlability": "Tinggi",
+      "notes": "Riwayat tender gagal sering mengubah struktur DOM.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:28.753Z",
+      "lastError": "Error: read ECONNRESET",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-004",
+      "name": "PT MRT Jakarta (Perseroda)",
+      "url": "https://eproc.jakartamrt.co.id/",
+      "platform": "Proprietary Portal",
+      "crawlability": "Rendah",
+      "notes": "Akses detail memerlukan status Approved Vendor List (AVL).",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:30.590Z",
+      "lastError": "Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). Tidak dapat diakses secara publik.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-005",
+      "name": "PT Transportasi Jakarta (Transjakarta)",
+      "url": "https://ulp.transjakarta.co.id",
+      "platform": "Microsoft Dynamics ERP",
+      "crawlability": "Sedang",
+      "notes": "Render Javascript sisi klien sangat intensif. Butuh headless browser.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:31.763Z",
+      "lastError": "Portal Transjakarta menggunakan Microsoft Dynamics ERP dengan rendering JavaScript sisi klien penuh. Memerlukan headless browser.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-006",
+      "name": "PT Pembangunan Jaya Ancol Tbk",
+      "url": "https://eproc.ancol.com/eProc/tenderannouncement",
+      "platform": "Custom e-Proc",
+      "crawlability": "Tinggi",
+      "notes": "Pembatasan sesi login cepat kedaluwarsa.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:34.880Z",
+      "lastError": "Tabel ditemukan namun tidak ada baris data yang dapat diekstrak.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-007",
+      "name": "Perumda Pasar Jaya",
+      "url": "https://e-proc.pasarjaya.co.id",
+      "platform": "iProc ADW / pengadaan.com",
+      "crawlability": "Sedang",
+      "notes": "Transisi penuh dari platform SPSE lama ke iProc ADW.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:36.656Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-008",
+      "name": "Perumda Pembangunan Sarana Jaya",
+      "url": "https://eproc.sarana-jaya.co.id/",
+      "platform": "Custom eProc Sarana Jaya",
+      "crawlability": "Sedang",
+      "notes": "Pemeliharaan sistem berkala. Butuh mekanisme fallback.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:44.937Z",
+      "lastError": "Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-009",
+      "name": "PT Air Minum Jaya (PAM JAYA)",
+      "url": "https://eproc.pamjaya.co.id/",
+      "platform": "iPROCs / Procuriza",
+      "crawlability": "Tinggi",
+      "notes": "Integrasi data kualifikasi via Vendoriza. Parsing tabel ringkasan harian.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:47.159Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-010",
+      "name": "Perumda PAL Jaya",
+      "url": "https://eproc.paljaya.com/main/index/tender",
+      "platform": "Custom e-Procurement",
+      "crawlability": "Tinggi",
+      "notes": "Validasi kualifikasi usaha kecil/non-kecil terintegrasi.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:48.680Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-011",
+      "name": "PT Food Station Tjipinang Jaya",
+      "url": "https://eproc.foodstation.co.id/",
+      "platform": "Custom E-Procurement",
+      "crawlability": "Tinggi",
+      "notes": "Frekuensi update tender baru relatif rendah. Interval crawling harian.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:50.320Z",
+      "lastError": "Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-012",
+      "name": "PT JIEP (Pulogadung)",
+      "url": "https://eproc.jiep.co.id/",
+      "platform": "Custom eProc JIEP",
+      "crawlability": "Sedang",
+      "notes": "Proteksi login SSO Nexus. Targetkan halaman pendaftaran vendor publik.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:51.954Z",
+      "lastError": "Portal JIEP menggunakan proteksi login SSO Nexus. Tidak dapat diakses tanpa autentikasi.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-013",
+      "name": "Perumda Dharma Jaya",
+      "url": "https://eproc.dharmajaya.co.id/",
+      "platform": "Vendoriza / Procuriza",
+      "crawlability": "Tinggi",
+      "notes": "Halaman pengumuman terintegrasi dengan barcode eksternal.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:54.587Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-014",
+      "name": "PT Kawasan Berikat Nusantara (KBN)",
+      "url": "https://eproc.kbn.co.id/",
+      "platform": "Custom e-Procurement",
+      "crawlability": "Tinggi",
+      "notes": "Skrip pengaman Captcha pada form masuk.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:34:56.715Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-015",
+      "name": "PT Pulo Mas Jaya (PMJ Land)",
+      "url": "https://eproc.pulomasjaya.co.id/",
+      "platform": "Custom e-Procurement",
+      "crawlability": "Tinggi",
+      "notes": "Data arsip proyek lama tercampur dengan proyek aktif.",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:35:01.102Z",
+      "lastError": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectCount": 0,
+      "active": true
+    },
+    {
+      "id": "src-1782905552729",
+      "name": "Test Portal",
+      "url": "https://eproc.test-bumd.co.id",
+      "platform": "Custom",
+      "crawlability": "Sedang",
+      "notes": "",
+      "status": "uncrawlable",
+      "lastCrawled": "2026-07-01T11:35:02.441Z",
+      "lastError": "Error: getaddrinfo ENOTFOUND eproc.test-bumd.co.id",
+      "projectCount": 0,
+      "active": true
+    }
+  ],
+  "projects": [],
+  "crawlLogs": [
+    {
+      "id": "log-1782905702443",
+      "timestamp": "2026-07-01T11:35:02.443Z",
+      "sourceId": "src-1782905552729",
+      "sourceName": "Test Portal",
+      "type": "error",
+      "message": "Error: getaddrinfo ENOTFOUND eproc.test-bumd.co.id",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905701103",
+      "timestamp": "2026-07-01T11:35:01.103Z",
+      "sourceId": "src-015",
+      "sourceName": "PT Pulo Mas Jaya (PMJ Land)",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905696716",
+      "timestamp": "2026-07-01T11:34:56.716Z",
+      "sourceId": "src-014",
+      "sourceName": "PT Kawasan Berikat Nusantara (KBN)",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905694588",
+      "timestamp": "2026-07-01T11:34:54.588Z",
+      "sourceId": "src-013",
+      "sourceName": "Perumda Dharma Jaya",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905691954",
+      "timestamp": "2026-07-01T11:34:51.954Z",
+      "sourceId": "src-012",
+      "sourceName": "PT JIEP (Pulogadung)",
+      "type": "uncrawlable",
+      "message": "Portal JIEP menggunakan proteksi login SSO Nexus. Tidak dapat diakses tanpa autentikasi.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905690321",
+      "timestamp": "2026-07-01T11:34:50.321Z",
+      "sourceId": "src-011",
+      "sourceName": "PT Food Station Tjipinang Jaya",
+      "type": "error",
+      "message": "Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905688681",
+      "timestamp": "2026-07-01T11:34:48.681Z",
+      "sourceId": "src-010",
+      "sourceName": "Perumda PAL Jaya",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905687159",
+      "timestamp": "2026-07-01T11:34:47.159Z",
+      "sourceId": "src-009",
+      "sourceName": "PT Air Minum Jaya (PAM JAYA)",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905684939",
+      "timestamp": "2026-07-01T11:34:44.939Z",
+      "sourceId": "src-008",
+      "sourceName": "Perumda Pembangunan Sarana Jaya",
+      "type": "error",
+      "message": "Error: unable to verify the first certificate; if the root CA is installed locally, try running Node.js with --use-system-ca",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905676657",
+      "timestamp": "2026-07-01T11:34:36.657Z",
+      "sourceId": "src-007",
+      "sourceName": "Perumda Pasar Jaya",
+      "type": "error",
+      "message": "Tidak ada tabel data yang dapat diekstrak dari halaman ini. Struktur halaman mungkin memerlukan JavaScript atau login.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905674881",
+      "timestamp": "2026-07-01T11:34:34.881Z",
+      "sourceId": "src-006",
+      "sourceName": "PT Pembangunan Jaya Ancol Tbk",
+      "type": "error",
+      "message": "Tabel ditemukan namun tidak ada baris data yang dapat diekstrak.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905671764",
+      "timestamp": "2026-07-01T11:34:31.764Z",
+      "sourceId": "src-005",
+      "sourceName": "PT Transportasi Jakarta (Transjakarta)",
+      "type": "uncrawlable",
+      "message": "Portal Transjakarta menggunakan Microsoft Dynamics ERP dengan rendering JavaScript sisi klien penuh. Memerlukan headless browser.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905670591",
+      "timestamp": "2026-07-01T11:34:30.591Z",
+      "sourceId": "src-004",
+      "sourceName": "PT MRT Jakarta (Perseroda)",
+      "type": "uncrawlable",
+      "message": "Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). Tidak dapat diakses secara publik.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905668755",
+      "timestamp": "2026-07-01T11:34:28.755Z",
+      "sourceId": "src-003",
+      "sourceName": "PT Jakarta Propertindo (JAKPRO)",
+      "type": "error",
+      "message": "Error: read ECONNRESET",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905663688",
+      "timestamp": "2026-07-01T11:34:23.688Z",
+      "sourceId": "src-002",
+      "sourceName": "PT Bank DKI",
+      "type": "error",
+      "message": "HTTP 403 Forbidden — Portal memblokir akses crawler (WAF atau proteksi anti-bot).",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905661431",
+      "timestamp": "2026-07-01T11:34:21.431Z",
+      "sourceId": "src-001",
+      "sourceName": "Pemprov DKI Jakarta (SPSE)",
+      "type": "error",
+      "message": "HTTP 404 Not Found — URL target tidak ditemukan.",
+      "projectsAdded": 0
+    },
+    {
+      "id": "log-1782905557724",
+      "timestamp": "2026-07-01T11:32:37.724Z",
+      "sourceId": "src-004",
+      "sourceName": "PT MRT Jakarta (Perseroda)",
+      "type": "uncrawlable",
+      "message": "Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). Tidak dapat diakses secara publik.",
+      "projectsAdded": 0
+    }
+  ]
+}

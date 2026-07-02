@@ -123,7 +123,7 @@ export async function scrapeSPSE(sourceUrl, sourceId, sourceName) {
       deadline: dateRaw,
       sourceId,
       sourceName,
-      url: `${baseUrl}/lelang/${tenderId}`,
+      url: `${baseUrl}/lelang/${tenderId}/pengumumanlelang`,
       crawledAt: new Date().toISOString(),
     };
   });

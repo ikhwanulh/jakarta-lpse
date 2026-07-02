@@ -7,6 +7,7 @@ export default function SourcesManager() {
   const [crawlingIds, setCrawlingIds] = useState(new Set());
   const [crawlingAll, setCrawlingAll] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingSourceId, setEditingSourceId] = useState(null);
   const [form, setForm] = useState({ name: '', url: '', platform: '', crawlability: '', notes: '' });
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -77,24 +78,48 @@ export default function SourcesManager() {
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/sources', {
-        method: 'POST',
+      const url = editingSourceId ? `/api/sources/${editingSourceId}` : '/api/sources';
+      const method = editingSourceId ? 'PATCH' : 'POST';
+      
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
       if (!res.ok) {
         const err = await res.json();
-        setFormError(err.error || 'Gagal menambahkan sumber.');
+        setFormError(err.error || 'Gagal menyimpan sumber.');
         return;
       }
       setForm({ name: '', url: '', platform: '', crawlability: '', notes: '' });
       setShowAddForm(false);
+      setEditingSourceId(null);
       fetchSources();
     } catch {
       setFormError('Gagal terhubung ke server.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEditClick = (src) => {
+    setForm({
+      name: src.name,
+      url: src.url,
+      platform: src.platform || '',
+      crawlability: src.crawlability || '',
+      notes: src.notes || '',
+    });
+    setEditingSourceId(src.id);
+    setShowAddForm(true);
+    setFormError('');
+  };
+
+  const handleCancelClick = () => {
+    setForm({ name: '', url: '', platform: '', crawlability: '', notes: '' });
+    setShowAddForm(false);
+    setEditingSourceId(null);
+    setFormError('');
   };
 
   const formatDate = (iso) => {
@@ -127,7 +152,11 @@ export default function SourcesManager() {
           <button
             id="sources-btn-add"
             className="btn btn-primary"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setForm({ name: '', url: '', platform: '', crawlability: '', notes: '' });
+              setEditingSourceId(null);
+              setShowAddForm(true);
+            }}
           >
             + Tambah Portal
           </button>
@@ -138,8 +167,8 @@ export default function SourcesManager() {
       {showAddForm && (
         <div className="card" style={{ padding: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h3>Tambah Portal LPSE / e-Procurement Baru</h3>
-            <button className="btn btn-secondary btn-sm" onClick={() => { setShowAddForm(false); setFormError(''); }}>
+            <h3>{editingSourceId ? 'Edit Portal LPSE / e-Procurement' : 'Tambah Portal LPSE / e-Procurement Baru'}</h3>
+            <button className="btn btn-secondary btn-sm" onClick={handleCancelClick}>
               ✕ Tutup
             </button>
           </div>
@@ -208,11 +237,11 @@ export default function SourcesManager() {
               </div>
             )}
             <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { setShowAddForm(false); setFormError(''); }}>
+              <button type="button" className="btn btn-secondary" onClick={handleCancelClick}>
                 Batal
               </button>
               <button id="src-submit-btn" type="submit" className="btn btn-primary" disabled={submitting}>
-                {submitting ? <><span className="spinner spinner-sm" /> Menyimpan...</> : '+ Tambah Sumber'}
+                {submitting ? <><span className="spinner spinner-sm" /> Menyimpan...</> : editingSourceId ? '💾 Simpan Perubahan' : '+ Tambah Sumber'}
               </button>
             </div>
           </form>
@@ -280,17 +309,28 @@ export default function SourcesManager() {
                         {formatDate(src.lastCrawled)}
                       </td>
                       <td>
-                        <button
-                          id={`src-crawl-${src.id}`}
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleCrawl(src)}
-                          disabled={isCrawling}
-                          title="Crawl sumber ini sekarang"
-                        >
-                          {isCrawling
-                            ? <><span className="spinner spinner-sm pulse" /> Crawling</>
-                            : '🕷️ Crawl'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            id={`src-crawl-${src.id}`}
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleCrawl(src)}
+                            disabled={isCrawling}
+                            title="Crawl sumber ini sekarang"
+                          >
+                            {isCrawling
+                              ? <><span className="spinner spinner-sm pulse" /> Crawling</>
+                              : '🕷️ Crawl'}
+                          </button>
+                          <button
+                            id={`src-edit-${src.id}`}
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handleEditClick(src)}
+                            disabled={isCrawling}
+                            title="Edit detail portal ini"
+                          >
+                            ✏️ Edit
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

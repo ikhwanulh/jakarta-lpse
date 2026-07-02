@@ -457,7 +457,11 @@ export async function scrapeEProcs(sourceUrl, sourceId, sourceName) {
     const name = nameEl.text().trim();
 
     const href = nameEl.attr('href') || '';
-    const fullLink = href.startsWith('http') ? href : `${new URL(sourceUrl).origin}/main/${href}`;
+    const fullLink = href.startsWith('http')
+      ? href
+      : href.startsWith('/')
+        ? `${new URL(sourceUrl).origin}${href}`
+        : `${new URL(sourceUrl).origin}/${href}`;
 
     const textBlock = $(el).text();
     const packetMatch = textBlock.match(/No\.\s*Paket:\s*([^\s]+)/i);

@@ -1,56 +1,65 @@
-import { scrapeSPSE, scrapeGenericHTML } from './spseScraper.js';
+import { scrapeSPSE, scrapeGenericHTML, scrapeMRT, scrapeTransjakarta, scrapeAncol, scrapeEProcs } from './spseScraper.js';
 import { updateSource, upsertProject, addCrawlLog, getSources } from '../db.js';
 
 // ─── Portals classified by crawl strategy ────────────────────────────────────
 
 // RC-3 Fix: Portals that are JS-rendered or have auth walls — mark immediately
 // with accurate, portal-specific error messages instead of generic "no table found"
+// Added conditional checks (check property) so updated crawlable URLs bypass this list.
 const UNCRAWLABLE_PORTALS = {
   'jakartamrt.co.id': {
+    check: (url) => !url.includes('/announcement'),
     reason:
       'Portal MRT Jakarta memerlukan akun Approved Vendor List (AVL). ' +
       'Detail tender tidak dapat diakses secara publik tanpa autentikasi AVL.',
   },
   'transjakarta.co.id': {
+    check: (url) => !url.includes('/tender'),
     reason:
       'Portal Transjakarta menggunakan Microsoft Dynamics ERP dengan rendering ' +
       'JavaScript sisi klien penuh. Memerlukan headless browser (Playwright/Puppeteer) ' +
       'untuk mengeksekusi JavaScript sebelum data dapat diekstrak.',
   },
   'jiep.co.id': {
+    check: () => true,
     reason:
       'Portal JIEP dilindungi oleh SSO Nexus. ' +
       'Autentikasi login diperlukan untuk mengakses daftar tender.',
   },
-  // RC-3: JS-rendered BUMD portals — confirmed via live test
   'pamjaya.co.id': {
+    check: (url) => !url.includes('/tender'),
     reason:
       'Portal PAM JAYA menggunakan rendering JavaScript sisi klien (Single Page App). ' +
       'Cheerio tidak dapat mengekstrak data dari halaman dinamis ini. ' +
       'Memerlukan headless browser untuk crawling.',
   },
   'paljaya.com': {
+    check: (url) => !url.includes('/tender'),
     reason:
       'Portal PAL Jaya menggunakan rendering JavaScript sisi klien. ' +
       'Memerlukan headless browser untuk mengambil data tender.',
   },
   'kbn.co.id': {
+    check: () => true,
     reason:
       'Portal KBN menggunakan rendering JavaScript sisi klien. ' +
       'Memerlukan headless browser untuk mengambil data tender.',
   },
   'pulomasjaya.co.id': {
+    check: () => true,
     reason:
       'Portal Pulo Mas Jaya menggunakan rendering JavaScript sisi klien. ' +
       'Memerlukan headless browser untuk mengambil data tender.',
   },
   'pasarjaya.co.id': {
+    check: (url) => !url.includes('/lelang'),
     reason:
       'Portal Pasar Jaya telah migrasi ke platform iProc ADW (pengadaan.com) ' +
       'yang menggunakan Single Page App dengan sesi terenkripsi. ' +
       'Memerlukan headless browser dengan session management.',
   },
   'dharmajaya.co.id': {
+    check: () => true,
     reason:
       'Halaman pengadaan Dharma Jaya menggunakan WordPress blog post dengan barcode eksternal, ' +
       'bukan tabel HTML standar. ' +
@@ -62,8 +71,8 @@ const UNCRAWLABLE_PORTALS = {
 const SPSE_PATTERNS = ['spse.inaproc.id'];
 
 function getUncrawlableInfo(url) {
-  const match = Object.entries(UNCRAWLABLE_PORTALS).find(([pattern]) =>
-    url.includes(pattern)
+  const match = Object.entries(UNCRAWLABLE_PORTALS).find(([pattern, obj]) =>
+    url.includes(pattern) && (typeof obj.check === 'function' ? obj.check(url) : true)
   );
   return match ? match[1] : null;
 }
@@ -80,7 +89,7 @@ export async function crawlSource(source) {
   // Mark as crawling
   updateSource(id, { status: 'crawling', lastError: null });
 
-  // RC-3 Fix: Check known uncrawlable portals first with accurate messages
+  // Check if URL is matched in the uncrawlable list
   const uncrawlableInfo = getUncrawlableInfo(url);
   if (uncrawlableInfo) {
     updateSource(id, {
@@ -102,10 +111,16 @@ export async function crawlSource(source) {
     let projects = [];
 
     if (isSPSE(url)) {
-      // RC-1 Fix: SPSE scraper now does proper 2-step session init
       projects = await scrapeSPSE(url, id, name);
+    } else if (url.includes('jakartamrt.co.id')) {
+      projects = await scrapeMRT(url, id, name);
+    } else if (url.includes('transjakarta.co.id')) {
+      projects = await scrapeTransjakarta(url, id, name);
+    } else if (url.includes('ancol.com')) {
+      projects = await scrapeAncol(url, id, name);
+    } else if (url.includes('pamjaya.co.id') || url.includes('paljaya.com')) {
+      projects = await scrapeEProcs(url, id, name);
     } else {
-      // RC-2+4 Fix: generic scraper now uses TLS bypass + login detection
       projects = await scrapeGenericHTML(url, id, name);
     }
 
